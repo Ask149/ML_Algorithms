@@ -1,51 +1,71 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
-struct Point{
-	double amplitude;
-	double distance;
-	int label;
-};
+void printElementOfLabel(double amplitude[], int labels[],int n,int label){
+	printf("Elements of Label : %d\n",label+1);
+	for(int i=0;i<n;i++){
+		if(labels[i]==label){
+			printf("%f ",amplitude[i]);
+		}
+	}
+	printf("\n");
+}
 
-int classifyPoint(struct Point arr[], int n, int k, struct Point p){
+int classifyPoint(double amplitude[], double distance[] ,int label[], int n, int k, int p, double test){
 	
 	// Calulate the distance
 	for(int i=0;i<n;i++){
-		arr[i].distance = ( arr[i].amplitude - p.amplitude);
-		if(arr[i].distance<0){
-			arr[i].distance = -1*arr[i].distance;
+		distance[i] = ( amplitude[i] - test);
+		if(distance[i]<0){
+			distance[i] = -1*distance[i];
 		}
 	}
 
-	// Bubble Sort 
-	for(int i=0;i<n;i++){
-		for(int j=i+1;j<n;j++){
-			if(arr[i].distance>arr[j].distance){
-				struct Point temp;
-				temp.amplitude = arr[i].amplitude;
-				temp.label = arr[i].label;
-				temp.distance = arr[i].distance;
-
-				arr[i].amplitude = arr[j].amplitude;
-				arr[i].label = arr[j].label;
-				arr[i].distance = arr[j].distance;
-
-				arr[j].amplitude = temp.amplitude;
-				arr[j].label = temp.label;
-				arr[j].distance = temp.distance;
-			}
-		}
+	for(int i=0;i<k;i++)
+	{
+		printElementOfLabel(amplitude,label,n,i);
 	}
 
 	// Initilize the frequency count of the nearest labels
-	int freq[4];
+	int freq[k];
 	for(int i=0;i<4;i++)
 	{
 		freq[i]=0;	
 	}
 
-	for(int i=0;i<k;i++){
-		for(int j=0;j<4;j++){
-			if(arr[i].label==j){
+	int min_element = distance[n-1];
+	int min_index = n-1;
+	
+	// Sort the Top p elements in the list by distance in ascending order
+	for(int j=n-1;j>=n-p;j--){
+		for(int i=0;i<=j;i++){
+			if(distance[i]<min_element){
+				min_element = distance[i];
+				min_index = i;
+			}
+		}
+
+		double temp1 = min_element;
+		distance[min_index]=distance[j];
+		distance[j] = temp1;
+
+		temp1 = amplitude[min_index];
+		amplitude[min_index]=amplitude[j];
+		amplitude[j] = temp1;
+
+		int temp2 = label[min_index];
+		label[min_index] = label[j];
+		label[j] = temp2; 
+
+		min_index = j-1;
+		min_element = distance[j-1];
+	}
+
+	for(int i=n-1;i>=n-p;i--){
+		//printf("A = %f, D = %f , L = %d\n",amplitude[i], distance[i], label[i] );
+		for(int j=0;j<k;j++){
+			if(label[i]==j){
 				freq[j]++;
 				break;
 			}
@@ -56,71 +76,41 @@ int classifyPoint(struct Point arr[], int n, int k, struct Point p){
 	int max1 = -1;
 
 	// Find the label with maximum frequency
-	for(int i=0;i<4;i++){
+	for(int i=0;i<k;i++){
+		//printf("freq[%d] = %d\n", i+1, freq[i]);
 		if(max1 < freq[i]){
 			index=i+1;
 			max1 = freq[i];
+		}
+		else if(max1 == freq[i]){
+			//printf("Same max freq as %d is %d = %d \n",i+1, index , freq[i]);
 		}
 	}
 	return index;
 }
 int main(){
-    int n = 17; // Number of data points 
-    struct Point arr[n]; 
-  
-    arr[0].amplitude = 1; 
-    arr[0].label = 0; 
-  
-    arr[1].amplitude = 2; 
-    arr[1].label = 0; 
-  
-    arr[2].amplitude = 5; 
-    arr[2].label = 1; 
-  
-    arr[3].amplitude = 3; 
-    arr[3].label = 1; 
-  
-    arr[4].amplitude = 3; 
-    arr[4].label = 2; 
-  
-    arr[5].amplitude = 1.5; 
-    arr[5].label = 2; 
-  
-    arr[6].amplitude = 7; 
-    arr[6].label = 3; 
-  
-    arr[7].amplitude = 6; 
-    arr[7].label = 3; 
-  
-    arr[8].amplitude = 3.8; 
-    arr[8].label = 1; 
-  
-    arr[9].amplitude = 3; 
-    arr[9].label = 0; 
-  
-    arr[10].amplitude = 5.6; 
-    arr[10].label = 2; 
-  
-    arr[11].amplitude = 4; 
-    arr[11].label = 3; 
-  
-    arr[12].amplitude = 3.5; 
-    arr[12].label = 0; 
-  
-    arr[13].amplitude = 2; 
-    arr[13].label = 0; 
-  
-    arr[14].amplitude = 2; 
-    arr[14].label = 1; 
-  
-    arr[15].amplitude = 2; 
-    arr[15].label = 2; 
-  
-    arr[16].amplitude = 1; 
-    arr[16].label = 3; 
-  
+    srand(time(0));
+    printf("Hello\n");
+    int n = (int)rand()%(20+1-10)+10; // Number of data points 
+	double amplitude[n];
+  	double distance[n];
+  	int label[n];
+  	srand(time(0));
+  	int k = rand()%(5-1+1)+1; // Number of classes
+  	int upper_limit = (k); 
+  	if(upper_limit>(n/k+1))
+  		upper_limit = (n/k+1);
+  	srand(time(0));
+  	int p = rand() % ( upper_limit+1 - 2 ) + 2;
+	
+  	for(int i=0;i<n;i++){
+  		amplitude[i] = rand() % (((n+1)*i+n) + 1 - ((n+1*i)-n)) + ((n+1*i)-n);
+  		label[i] = rand() % (k - 0) + 0;
+  	}
+
     /*Testing Point*/
-    struct Point p; 
-    p.amplitude = 2.5; 
-    printf("%d",classifyPoint(arr,n,4,p));
+    double testpoint = rand()% ((n+1)*(n+1));
+    
+    printf("n = %d,k = %d,p = %d, test point = %f\n",n,k,p,testpoint);
+    printf("Predicted Label : %d\n",classifyPoint(amplitude,distance,label,n,k,p,testpoint));
  }
